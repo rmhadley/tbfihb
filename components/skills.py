@@ -138,7 +138,7 @@ class CastLine(Skill):
             target = self.engine.game_map.get_actor_at_location(xy[0], xy[1])
             if target:
                 chance = random.randint(0, 100)
-                target_chance = target.fighter.difficulty - self.level
+                target_chance = target.fighter.difficulty - self.level - target.fighter.fatigue
                 print(f"{chance} >= {target_chance}")
                 if chance >= target_chance and chance != 0:
                     self.engine.message_log.add_message(
