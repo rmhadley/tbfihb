@@ -180,14 +180,17 @@ class ScaredEnemy(BaseAI):
         target = self.engine.player
 
         while self.dest_x == 0 and self.dest_y == 0:
-            if self.engine.game_map.tiles[random_x, random_y]["walkable"]:
-                dx = target.x - random_x
-                dy = target.y - random_y
-                distance = max(abs(dx), abs(dy))
+            try:
+                if self.engine.game_map.tiles[random_x, random_y]["walkable"]:
+                    dx = target.x - random_x
+                    dy = target.y - random_y
+                    distance = max(abs(dx), abs(dy))
 
-                if distance >= 30:
-                    self.dest_x = random_x
-                    self.dest_y = random_y
+                    if distance >= 30:
+                        self.dest_x = random_x
+                        self.dest_y = random_y
+            except:
+                print("out of bounds I guess")
             random_x = random.randint(0, self.engine.game_map.width)
             random_y = random.randint(0, self.engine.game_map.height)
 
