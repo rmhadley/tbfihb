@@ -344,13 +344,13 @@ class SkillEventHandler(AskUserEventHandler):
 
         if self.engine.player.skills.hooked != None:
             fish = self.engine.player.skills.hooked
-            y = y + 8
+            y = y + 5
 
             console.draw_frame(
                 x=x,
                 y=0,
                 width=width,
-                height=8,
+                height=5,
                 title="Hooked Fish",
                 clear=True,
                 fg=(255, 255, 255),
