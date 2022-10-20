@@ -679,6 +679,17 @@ class BeamRangedAttackHandler(SelectIndexHandler):
         self.player = self.engine.player
         self.beem_path = []
 
+        closest = 200
+        # let's find the closest enemy and default to them
+        for entity in set(self.engine.game_map.actors) - {self.player}:
+          if self.engine.game_map.visible[entity.x, entity.y]:
+            dx = entity.x - self.player.x
+            dy = entity.y - self.player.y
+            distance = max(abs(dx), abs(dy))
+            if distance < closest:
+                closest = distance
+                self.engine.mouse_location = entity.x, entity.y
+
     def on_render(self, console: tcod.Console) -> None:
         """Highlight the tile under the cursor."""
         super().on_render(console)
