@@ -5,7 +5,9 @@ import math
 import random
 from typing import Optional, Tuple, Type, TypeVar, TYPE_CHECKING, Union
     
+import components.quests
 from render_order import RenderOrder
+
 
 T = TypeVar("T", bound="Entity")
 
@@ -73,6 +75,59 @@ class Entity:
         # Move the entity by a given amount
         self.x += dx
         self.y += dy
+
+class NPC(Entity):
+    def __init__(
+        self,
+        *,
+        x: int = 0,
+        y: int = 0,
+        char: str = "?",
+        color: Tuple[int, int, int] = (255, 255, 255),
+        name: str = "<Unnamed>",
+        ai_cls: Type[BaseAI],
+    ):
+        super().__init__(
+            x=x,
+            y=y,
+            char=char,
+            color=color,
+            name=name,
+            blocks_movement=True,
+            render_order=RenderOrder.ACTOR,
+        )
+
+        self.ai: Optional[BaseAI] = ai_cls(self)
+
+    def spawn(self: T, gamemap: GameMap, x: int, y: int, rarity_chances: {}) -> T:
+        """Spawn a copy of this instance at the given location."""
+        clone = copy.deepcopy(self)
+        clone.x = x
+        clone.y = y
+        clone.parent = gamemap
+        gamemap.entities.add(clone)
+
+        return clone
+
+    def interact(self) -> None:
+        raise NotImplementedError()
+
+    @property
+    def is_alive(self) -> bool:
+        """Returns True as long as this actor can perform actions."""
+        return bool(self.ai)
+
+class Fisherman(NPC):
+    HELLO = "Sup? I got a job for you."
+    quests = []
+
+    def interact(self) -> None:
+        if len(self.quests) < 1:
+            self.quests.append(components.quests.OceanQuest())
+            self.quests.append(components.quests.CloudsQuest())
+
+        self.gamemap.engine.npc = self
+        return None
 
 class Actor(Entity):
     def __init__(

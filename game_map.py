@@ -163,12 +163,13 @@ class GameWorld:
 
         self.current_floor = current_floor
 
-        self.game_maps = {}
+        self.city = None
+        self.map = None
 
     def generate_floor(self) -> None:
-        from maps.ocean import generate_dungeon
+        from maps.city1 import generate_dungeon
 
-        self.game_maps[self.current_floor] = generate_dungeon(
+        return generate_dungeon(
             max_rooms=self.max_rooms,
             room_min_size=self.room_min_size,
             room_max_size=self.room_max_size,
@@ -177,13 +178,40 @@ class GameWorld:
             engine=self.engine,
         )
 
-    def move(self, direction: int) -> None:
-        self.current_floor += direction
-        if not self.current_floor in self.game_maps:
-            self.generate_floor()
-        self.engine.game_map = self.game_maps[self.current_floor]
-        
-        if direction < 0:
-            self.engine.player.place(*self.engine.game_map.downstairs_location, self.engine.game_map)
+    def generate_ocean_floor(self) -> None:
+        from maps.ocean import generate_dungeon
+
+        return generate_dungeon(
+            max_rooms=self.max_rooms,
+            room_min_size=self.room_min_size,
+            room_max_size=self.room_max_size,
+            map_width=self.map_width,
+            map_height=self.map_height,
+            engine=self.engine,
+        )
+
+    def generate_clouds_floor(self) -> None:
+        from maps.clouds import generate_dungeon
+
+        return generate_dungeon(
+            max_rooms=self.max_rooms,
+            room_min_size=self.room_min_size,
+            room_max_size=self.room_max_size,
+            map_width=self.map_width,
+            map_height=self.map_height,
+            engine=self.engine,
+        )
+
+    def embark(self) -> None:
+        if self.engine.quest.quest_map == "ocean":
+            self.engine.quest.embarked = True
+            self.engine.game_map = self.generate_ocean_floor()
+        elif self.engine.quest.quest_map == "clouds":
+            self.engine.quest.embarked = True
+            self.engine.game_map = self.generate_clouds_floor()
         else:
-            self.engine.player.place(*self.engine.game_map.upstairs_location, self.engine.game_map)
+            self.engine.game_map = self.generate_floor()
+
+    def return_city(self) -> None:
+        self.engine.game_map = self.engine.city
+        self.engine.player.place(*self.engine.game_map.player_start, self.engine.game_map)

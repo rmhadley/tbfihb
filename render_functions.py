@@ -54,5 +54,3 @@ def render_dungeon_level(
     Render the level the player is currently on, at the given location.
     """
     x, y = location
-
-    console.print(x=x, y=y, string=f"Dungeon level: {dungeon_level}")

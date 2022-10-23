@@ -1,11 +1,11 @@
-from components.ai import HostileEnemy, NeutralEnemy, GoldfishAI
+from components.ai import HostileEnemy, NeutralEnemy, GoldfishAI, NPCAI
 from components import consumable, equippable
 from components.equipment import Equipment
 from components.skills import Skills
 from components.fighter import Fighter
 from components.inventory import Inventory
 from components.level import Level
-from entity import Actor, Item
+from entity import Actor, Item, Fisherman
 
 player = Actor(
     char="@",
@@ -17,6 +17,13 @@ player = Actor(
     fighter=Fighter(hp=30, mp=4, base_defense=2, min_damage=1, max_damage=2, strength=5, intelligence=5, dexterity=5, constitution=5, difficulty=0, avoidance=0),
     inventory=Inventory(capacity=26),
     level=Level(level_up_base=200),
+)
+
+fisherman = Fisherman(
+    char="@",
+    color=(97, 237, 111),
+    name="Fisherman",
+    ai_cls=NPCAI,
 )
 
 goldfish = Actor(

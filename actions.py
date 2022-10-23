@@ -8,10 +8,7 @@ import color
 import exceptions
 import enchant_types
 from render_functions import get_names_at_location
-
-if TYPE_CHECKING:
-    from engine import Engine
-    from entity import Actor, Entity, Item
+from entity import NPC
 
 class Action:
     def __init__(self, entity: Actor) -> None:
@@ -196,10 +193,14 @@ class MovementAction(ActionWithDirection):
         if not self.engine.game_map.tiles["walkable"][dest_x, dest_y]:
             # Destination is blocked by a tile.
             raise exceptions.Impossible("That way is blocked.")
-        if self.engine.game_map.get_blocking_entity_at_location(dest_x, dest_y):
-            # Destination is blocked by an entity.
-            raise exceptions.Impossible("That way is blocked.")
 
+        entity = self.engine.game_map.get_blocking_entity_at_location(dest_x, dest_y)
+        if entity:
+            if isinstance(entity, NPC) and entity.is_alive:
+                return entity.interact()
+            else:
+                # Destination is blocked by an entity.
+                raise exceptions.Impossible("That way is blocked.")
         
         if self.entity == self.engine.player:
             names = ", ".join(
@@ -244,6 +245,32 @@ class DownStairsAction(Action):
             )
         else:
             raise exceptions.Impossible("There are no stairs here.")
+
+class EmbarkAction(Action):
+    def perform(self) -> None:
+        if self.engine.quest != None:
+            self.engine.game_world.embark()
+            self.engine.message_log.add_message(
+                "You embark on your quest", color.stairs_move
+            )
+        else:
+            raise exceptions.Impossible("You must accept a quest first.")
+
+class ReturnAction(Action):
+    def perform(self) -> None:
+        if self.engine.quest != None:
+            if self.engine.quest.embarked:
+                self.engine.game_world.return_city()
+                self.engine.quest.embarked = False
+                self.engine.quest = None
+                self.engine.caught = []
+                self.engine.message_log.add_message(
+                    "You retrun from your quest.", color.stairs_move
+                )
+            else:
+                raise exceptions.Impossible("You must embark on a quest first.")
+        else:
+            raise exceptions.Impossible("You must accept a quest first.")
 
 class UpStairsAction(Action):
     def perform(self) -> None:

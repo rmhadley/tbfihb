@@ -44,6 +44,14 @@ class BaseAI(Action):
         # Convert from List[List[int]] to List[Tuple[int, int]].
         return [(index[0], index[1]) for index in path]
 
+class NPCAI(BaseAI):
+    def __init__(self, entity: Actor):
+        super().__init__(entity)
+        self.path: List[Tuple[int, int]] = []
+
+    def perform(self) -> None:
+        return None
+
 class NeutralEnemy(BaseAI):
     def __init__(self, entity: Actor):
         super().__init__(entity)
@@ -82,11 +90,17 @@ class GoldfishAI(NeutralEnemy):
     def perform(self) -> None:
         if self.engine.player.skills.hooked != None:
             if self.engine.player.skills.hooked.name == "Great Goldfish":
+                chance = random.randint(1, 2)
+                if chance == 1:
+                    self.entity.color = (255,69,0)
+                else:
+                    self.entity.color=(255, 215, 0)
                 temp_ai = HostileEnemy(self.entity)
                 temp_ai.perform()
             else:
                 super().perform()
         else:
+            self.entity.color=(255, 215, 0)
             super().perform()
 
 class HookedEnemy(BaseAI):

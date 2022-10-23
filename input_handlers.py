@@ -129,6 +129,8 @@ class EventHandler(BaseEventHandler):
                 return GameOverEventHandler(self.engine)
             elif self.engine.player.level.requires_level_up:
                 return LevelUpEventHandler(self.engine)
+            elif self.engine.npc:
+                return NPCEventHandler(self.engine, self.engine.npc)
             elif self.engine.player.skills.hooked != None:
                 return SkillActivateHandler(self.engine)
             return MainGameEventHandler(self.engine)  # Return to the main handler.
@@ -185,18 +187,12 @@ class MainGameEventHandler(EventHandler):
             action = WaitAction(player)
         elif key == tcod.event.K_v:
             return HistoryViewer(self.engine)
-        elif key == tcod.event.K_g:
-            action = PickupAction(player)
         elif key == tcod.event.K_a:
             return SkillActivateHandler(self.engine)
-        elif key == tcod.event.K_i:
-            return InventoryInfoHandler(self.engine)
-        elif key == tcod.event.K_d:
-            return InventoryDropHandler(self.engine)
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
-        elif key == tcod.event.K_c:
-            return CharacterScreenEventHandler(self.engine)
+        elif key == tcod.event.K_q:
+            return QuestScreenEventHandler(self.engine)
 
         return action
 
@@ -904,3 +900,142 @@ class CharacterScreenEventHandler(AskUserEventHandler):
         console.print(
             x=x +1, y=y + 8, string=f"STR: {self.engine.player.fighter.strength} INT:{self.engine.player.fighter.intelligence} DEX:{self.engine.player.fighter.dexterity} CON:{self.engine.player.fighter.constitution}"
         )
+
+class NPCEventHandler(AskUserEventHandler):
+    def __init__(self, engine: Engine, npc: Entity):
+        super().__init__(engine)
+        self.npc = npc
+        self.TITLE = self.npc.name
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = 40
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=10,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        console.print(
+            x=x + 1, y=y + 1, string=self.npc.HELLO
+        )
+
+        i = 0
+        if len(self.npc.quests) > 0:
+            for i, quest in enumerate(self.npc.quests):
+                quest_key = chr(ord("a") + i)
+
+                quest_string = f"({quest_key}) {quest.name}"
+                fg_color = color.white
+
+                console.print(x + 1, y + i + 3, quest_string, fg=fg_color)
+
+        quest_key = chr(ord("a") + i + 1)
+        console.print(x + 1, y + i + 4, f"({quest_key}) No thanks")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        self.engine.npc = None
+
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if 0 <= index <= 26:
+            try:
+                self.engine.quest = self.npc.quests[index]
+                self.engine.message_log.add_message("Quest accepted.")
+                return super().ev_keydown(event)
+            except IndexError:
+                if index == len(self.npc.quests):
+                    return super().ev_keydown(event)
+                else:
+                    self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                    return None
+
+class QuestScreenEventHandler(AskUserEventHandler):
+    TITLE = "Quest"
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = len(self.TITLE) + 35
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=11,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        if self.engine.quest == None:
+            console.print(
+                x=x + 1, y=y + 1, string=f"No Quest Accepted.\n\nTalk to people in town."
+            )
+        else:
+            quest = self.engine.quest
+            if not quest.embarked:
+                console.print(
+                    x=x + 1, y=y + 1, string=f"{quest.name}\n{quest.description}\n\nMap: {quest.quest_map}\nGoal: {quest.quest_type} {quest.quest_count} {quest.quest_target}\n\n(a): Embark\n(b): Not ready"
+                )
+            else:
+                progress = ""
+                if quest.quest_type == "catch":
+                    caught = 0
+                    for fish in self.engine.caught:
+                        if fish.name == quest.quest_target:
+                            caught += 1
+                    progress = f"\nProgress: {caught}/{quest.quest_count}"
+
+                console.print(
+                    x=x + 1, y=y + 1, string=f"{quest.name}\n{quest.description}\n\nMap: {quest.quest_map}\nGoal: {quest.quest_type} {quest.quest_count} {quest.quest_target}{progress}\n\n(a): Abandon\n(b): Continue"
+                )
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        if self.engine.quest == None:
+            return super().ev_keydown(event)
+
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if not self.engine.quest.embarked:
+            if index == 0:
+                return actions.EmbarkAction(self.engine.player)
+                return super().ev_keydown(event)
+            elif index == 1 or key == tcod.event.K_ESCAPE:
+                return super().ev_keydown(event)
+            else:
+                self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                return None
+        else:
+            if index == 0:
+                return actions.ReturnAction(self.engine.player)
+                return super().ev_keydown(event)
+            elif index == 1 or key == tcod.event.K_ESCAPE:
+                return super().ev_keydown(event)
+            else:
+                self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                return None

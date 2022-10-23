@@ -70,6 +70,7 @@ class Reel(Skill):
             distance = max(abs(dx), abs(dy))  # Chebyshev distance.
 
             if distance == 1:
+                self.engine.caught.append(self.parent.hooked)
                 self.parent.hooked.char = ""
                 self.parent.hooked.blocks_movement = False
                 self.parent.hooked.ai = None

@@ -28,7 +28,7 @@ def main() -> None:
         screen_width,
         screen_height,
         tileset=tileset,
-        title="I Like Loot",
+        title="The Big Fish Is Huge, Baby",
         vsync=True,
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")

@@ -45,12 +45,12 @@ def new_game() -> Engine:
         map_height=map_height,
     )
     
-    engine.game_world.generate_floor()
-    engine.game_map = engine.game_world.game_maps[1]
+    engine.game_map = engine.game_world.generate_floor()
+    engine.city = engine.game_map
     engine.update_fov()
 
     engine.message_log.add_message(
-        "I HOPE YOU LIKE LOOT", color.welcome_text
+        "THE BIG FISH IS HUGE, BABY", color.welcome_text
     )
 
     return engine
@@ -72,7 +72,7 @@ class MainMenu(input_handlers.BaseEventHandler):
         console.print(
             console.width // 2,
             console.height // 2 - 4,
-            "I Like Loot",
+            "The Big Fish Is Huge, Baby",
             fg=color.menu_title,
             alignment=tcod.CENTER,
         )
