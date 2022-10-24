@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from typing import List, TYPE_CHECKING
 
 from entity import Item
@@ -65,3 +66,26 @@ class Inventory(BaseComponent):
             stacked_items.append(previous_item)
 
         return stacked_items
+
+class Parts(Inventory):
+    parent: Actor
+
+    def __init__(self, parts: list, chances: list, min_drops: int, max_drops: int):
+        self.parts = parts
+        self.chances = chances
+        self.min = min_drops
+        self.max = max_drops
+
+    def get_loot(self) -> List:
+        loot = []
+        drops = random.randint(self.min, self.max)
+        for drop in range(drops):
+            item_chance = random.randint(1, 100)
+            x = 0
+            for part in self.parts:
+                if item_chance <= self.chances[x]:
+                    loot.append(part)
+                    break
+                x += 1
+
+        return loot

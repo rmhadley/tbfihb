@@ -28,7 +28,7 @@ class OceanQuest(Quest):
             count = random.randint(2, 5)
 
         super().__init__(
-            name="Ocean Quest",
+            name="Ocean Quest - easy",
             description="Stocks running low, help replenish.",
             quest_map="ocean",
             quest_type="catch",
@@ -46,7 +46,7 @@ class CloudsQuest(Quest):
             count = random.randint(2, 6)
 
         super().__init__(
-            name="Clouds Quest",
+            name="Clouds Quest - medium",
             description="Stocks running low, help replenish.",
             quest_map="clouds",
             quest_type="catch",

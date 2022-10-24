@@ -139,9 +139,6 @@ class EventHandler(BaseEventHandler):
             if not self.engine.player.is_alive:
                 # The player was killed sometime during or after the action.
                 return GameOverEventHandler(self.engine)
-            elif quest_complete:
-                quest_complete = False
-                return QuestCompleteEventHandler(self.engine)
             elif self.engine.player.level.requires_level_up:
                 return LevelUpEventHandler(self.engine)
             elif self.engine.npc:
@@ -149,6 +146,11 @@ class EventHandler(BaseEventHandler):
             elif self.engine.player.skills.hooked != None:
                 return SkillActivateHandler(self.engine)
             return MainGameEventHandler(self.engine)  # Return to the main handler.
+
+        if quest_complete:
+            quest_complete = False
+            return QuestCompleteEventHandler(self.engine)
+
         return self
 
     def handle_action(self, action: Optional[Action]) -> bool:
@@ -206,6 +208,8 @@ class MainGameEventHandler(EventHandler):
             return SkillActivateHandler(self.engine)
         elif key == tcod.event.K_SLASH:
             return LookHandler(self.engine)
+        elif key == tcod.event.K_p:
+            return PartsEventHandler(self.engine)
         elif key == tcod.event.K_q:
             return QuestScreenEventHandler(self.engine)
 
@@ -1056,6 +1060,9 @@ class QuestScreenEventHandler(AskUserEventHandler):
 
 class QuestCompleteEventHandler(AskUserEventHandler):
     TITLE = "Quest Complete!"
+    def __init__(self, engine: Engine):
+        super().__init__(engine)
+        self.loot = []
 
     def on_render(self, console: tcod.Console) -> None:
         super().on_render(console)
@@ -1080,24 +1087,116 @@ class QuestCompleteEventHandler(AskUserEventHandler):
             bg=(0, 0, 0),
         )
 
-        if self.engine.quest == None:
-            return MainGameEventHandler(self.engine)
+        quest = self.engine.quest
+        progress = f"\nProgress: {quest.quest_count}/{quest.quest_count}"
+
+        console.print(
+            x=x + 1, y=y + 1, string=f"{quest.name}\n{quest.description}\n\nMap: {quest.quest_map}\nGoal: {quest.quest_type} {quest.quest_count} {quest.quest_target}{progress}\n\n(a): Return"
+        )
+
+        if len(self.loot) == 0:
+            for fish in self.engine.caught:
+                self.loot.extend(fish.inventory.get_loot())
+
+            self.engine.parts.extend(self.loot)
+
+        unique_parts = []
+        for part in self.loot:
+            if part not in unique_parts:
+                unique_parts.append(part)
+        unique_parts.sort()
+
+        number_parts = len(unique_parts)
+        height = number_parts + 2
+
+        y = y + 11
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title="Loot",
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        if number_parts > 0:
+            for i, part in enumerate(unique_parts):
+                count = self.loot.count(part)
+                part_string = f"{count} {part}"
+
+                console.print(x + 1, y + i + 1, part_string, fg=color.white)
         else:
-            quest = self.engine.quest
-            progress = f"\nProgress: {quest.quest_count}/{quest.quest_count}"
-
-            console.print(
-                x=x + 1, y=y + 1, string=f"{quest.name}\n{quest.description}\n\nMap: {quest.quest_map}\nGoal: {quest.quest_type} {quest.quest_count} {quest.quest_target}{progress}\n\n(a): Return"
-            )
-
-            self.engine.caught = []
+            console.print(x + 1, y + 1, "(Empty)")
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         key = event.sym
         index = key - tcod.event.K_a
 
         if index == 0:
+            self.loot = []
+            self.engine.caught = []
             return actions.ReturnAction(self.engine.player)
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None
+
+class PartsEventHandler(AskUserEventHandler):
+    TITLE = "Parts Inventory"
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        unique_parts = []
+        for part in self.engine.parts:
+            if part not in unique_parts:
+                unique_parts.append(part)
+        unique_parts.sort()
+
+        number_parts = len(unique_parts)
+
+        height = number_parts + 2
+
+        if height <= 3:
+            height = 3
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = len(self.TITLE) + 10
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        if number_parts > 0:
+            for i, part in enumerate(unique_parts):
+                count = self.engine.parts.count(part)
+                part_string = f"{count} {part}"
+
+                console.print(x + 1, y + i + 1, part_string, fg=color.white)
+        else:
+            console.print(x + 1, y + 1, "(Empty)")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if key == tcod.event.K_ESCAPE:
+            return super().ev_keydown(event)
         else:
             self.engine.message_log.add_message("Invalid entry.", color.invalid)
             return None

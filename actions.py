@@ -264,6 +264,7 @@ class ReturnAction(Action):
                 self.engine.quest.embarked = False
                 self.engine.quest = None
                 self.engine.caught = []
+                self.engine.player.fighter.heal(10000)
                 self.engine.message_log.add_message(
                     "You retrun from your quest.", color.stairs_move
                 )

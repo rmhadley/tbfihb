@@ -30,6 +30,7 @@ class Engine:
         self.npc = None
         self.quest = None
         self.caught = []
+        self.parts = []
 
     def handle_enemy_turns(self) -> None:
         for entity in set(self.game_map.actors) - {self.player}:
