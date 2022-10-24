@@ -1098,8 +1098,6 @@ class QuestCompleteEventHandler(AskUserEventHandler):
             for fish in self.engine.caught:
                 self.loot.extend(fish.inventory.get_loot())
 
-            self.engine.parts.extend(self.loot)
-
         unique_parts = []
         for part in self.loot:
             if part not in unique_parts:
@@ -1136,8 +1134,8 @@ class QuestCompleteEventHandler(AskUserEventHandler):
         index = key - tcod.event.K_a
 
         if index == 0:
-            self.loot = []
             self.engine.caught = []
+            self.engine.parts.extend(self.loot)
             return actions.ReturnAction(self.engine.player)
         else:
             self.engine.message_log.add_message("Invalid entry.", color.invalid)
