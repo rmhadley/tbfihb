@@ -106,12 +106,19 @@ def generate_dungeon(
     it = np.nditer(dungeon.tiles, flags=['multi_index'])
     for tile in it:
         if tile["walkable"]:
+            fish_chance = random.randint(1, 200)
             if it.multi_index[1] == bottom:
                 if random.randint(1, 4) == 3:
                     player_start = it.multi_index
             elif it.multi_index[1] > bottom:
                 bottom = it.multi_index[1]
                 player_start = it.multi_index
+            if fish_chance <= 2:
+                entity_factories.sky_fish.spawn(dungeon, it.multi_index[0], it.multi_index[1], "")
+            elif fish_chance <= 3:
+                entity_factories.sky_shark.spawn(dungeon, it.multi_index[0], it.multi_index[1], "")
+            elif fish_chance >= 199:
+                entity_factories.lightning_fish.spawn(dungeon, it.multi_index[0], it.multi_index[1], "")
 
     player.place(*player_start, dungeon)
 

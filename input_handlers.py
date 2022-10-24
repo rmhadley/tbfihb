@@ -122,11 +122,26 @@ class EventHandler(BaseEventHandler):
         action_or_state = self.dispatch(event)
         if isinstance(action_or_state, BaseEventHandler):
             return action_or_state
+
+        quest_complete = False
+        # Check if we're on a quest and if the quest is complete
+        if self.engine.quest != None:
+            if self.engine.quest.quest_type == "catch":
+                caught = 0
+                for fish in self.engine.caught:
+                    if fish.name == self.engine.quest.quest_target:
+                        caught += 1
+                if caught >= self.engine.quest.quest_count:
+                    quest_complete = True
+
         if self.handle_action(action_or_state):
             # A valid action was performed.
             if not self.engine.player.is_alive:
                 # The player was killed sometime during or after the action.
                 return GameOverEventHandler(self.engine)
+            elif quest_complete:
+                quest_complete = False
+                return QuestCompleteEventHandler(self.engine)
             elif self.engine.player.level.requires_level_up:
                 return LevelUpEventHandler(self.engine)
             elif self.engine.npc:
@@ -1033,9 +1048,56 @@ class QuestScreenEventHandler(AskUserEventHandler):
         else:
             if index == 0:
                 return actions.ReturnAction(self.engine.player)
-                return super().ev_keydown(event)
             elif index == 1 or key == tcod.event.K_ESCAPE:
                 return super().ev_keydown(event)
             else:
                 self.engine.message_log.add_message("Invalid entry.", color.invalid)
                 return None
+
+class QuestCompleteEventHandler(AskUserEventHandler):
+    TITLE = "Quest Complete!"
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        if self.engine.player.x <= 30:
+            x = 30
+        else:
+            x = 0
+
+        y = 0
+
+        width = len(self.TITLE) + 35
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=11,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        if self.engine.quest == None:
+            return MainGameEventHandler(self.engine)
+        else:
+            quest = self.engine.quest
+            progress = f"\nProgress: {quest.quest_count}/{quest.quest_count}"
+
+            console.print(
+                x=x + 1, y=y + 1, string=f"{quest.name}\n{quest.description}\n\nMap: {quest.quest_map}\nGoal: {quest.quest_type} {quest.quest_count} {quest.quest_target}{progress}\n\n(a): Return"
+            )
+
+            self.engine.caught = []
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if index == 0:
+            return actions.ReturnAction(self.engine.player)
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None

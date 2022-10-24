@@ -1,3 +1,5 @@
+import random
+
 from components.base_component import BaseComponent
 
 class Quest(BaseComponent):
@@ -19,22 +21,35 @@ class Quest(BaseComponent):
 
 class OceanQuest(Quest):
     def __init__(self) -> None:
+        target = random.choice(["Goldfish", "Great Goldfish"])
+        if target == "Great Goldfish":
+            count = 1
+        else:
+            count = random.randint(2, 5)
+
         super().__init__(
             name="Ocean Quest",
             description="Stocks running low, help replenish.",
             quest_map="ocean",
             quest_type="catch",
-            quest_target="Goldfish",
-            quest_count=4,
+            quest_target=target,
+            quest_count=count,
         )
 
 class CloudsQuest(Quest):
     def __init__(self) -> None:
+
+        target = random.choice(["Sky Fish", "Lightning Fish", "Sky Shark"])
+        if target == "Sky Shark":
+            count = random.randint(1, 2)
+        else:
+            count = random.randint(2, 6)
+
         super().__init__(
             name="Clouds Quest",
             description="Stocks running low, help replenish.",
             quest_map="clouds",
             quest_type="catch",
-            quest_target="Goldfish",
-            quest_count=4,
+            quest_target=target,
+            quest_count=count,
         )

@@ -204,7 +204,8 @@ class ScaredEnemy(BaseAI):
                         self.dest_x = random_x
                         self.dest_y = random_y
             except:
-                print("out of bounds I guess")
+                pass
+
             random_x = random.randint(0, self.engine.game_map.width)
             random_y = random.randint(0, self.engine.game_map.height)
 

@@ -49,3 +49,39 @@ great_goldfish = Actor(
     inventory=Inventory(capacity=0),
     level=Level(xp_given=20),
 )
+
+sky_fish = Actor(
+    char="s",
+    color=(186, 19, 191),
+    name="Sky Fish",
+    ai_cls=NeutralEnemy,
+    equipment=Equipment(),
+    skills=Skills(),
+    fighter=Fighter(hp=8, mp=0, base_defense=0, min_damage=1, max_damage=8, strength=7, intelligence=0, dexterity=5, constitution=0, difficulty=80, avoidance=80),
+    inventory=Inventory(capacity=0),
+    level=Level(xp_given=20),
+)
+
+sky_shark = Actor(
+    char="S",
+    color=(186, 19, 191),
+    name="Sky Shark",
+    ai_cls=NeutralEnemy,
+    equipment=Equipment(),
+    skills=Skills(),
+    fighter=Fighter(hp=8, mp=0, base_defense=0, min_damage=1, max_damage=8, strength=10, intelligence=0, dexterity=5, constitution=0, difficulty=90, avoidance=20),
+    inventory=Inventory(capacity=0),
+    level=Level(xp_given=20),
+)
+
+lightning_fish = Actor(
+    char="z",
+    color=(235, 255, 54),
+    name="Lightning Fish",
+    ai_cls=HostileEnemy,
+    equipment=Equipment(),
+    skills=Skills(),
+    fighter=Fighter(hp=1, mp=0, base_defense=0, min_damage=8, max_damage=8, strength=1, intelligence=0, dexterity=5, constitution=0, difficulty=30, avoidance=0),
+    inventory=Inventory(capacity=0),
+    level=Level(xp_given=20),
+)

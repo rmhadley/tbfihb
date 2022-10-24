@@ -40,7 +40,7 @@ class Skill(BaseComponent):
     parent: Actor
 
     def __init__(self, name: str) -> None:
-        self.level = 1
+        self.level = 40
         self.name = name
 
     def get_action(self, user: Actor) -> Optional[ActionOrHandler]:
@@ -67,7 +67,7 @@ class Reel(Skill):
             dx = self.parent.parent.x - self.parent.hooked.x
 
             dy = self.parent.parent.y - self.parent.hooked.y
-            distance = max(abs(dx), abs(dy))  # Chebyshev distance.
+            distance = max(abs(dx), abs(dy))
 
             if distance == 1:
                 self.engine.caught.append(self.parent.hooked)

@@ -122,9 +122,10 @@ class Fisherman(NPC):
     quests = []
 
     def interact(self) -> None:
-        if len(self.quests) < 1:
-            self.quests.append(components.quests.OceanQuest())
-            self.quests.append(components.quests.CloudsQuest())
+        self.quests = []
+
+        self.quests.append(components.quests.OceanQuest())
+        self.quests.append(components.quests.CloudsQuest())
 
         self.gamemap.engine.npc = self
         return None
