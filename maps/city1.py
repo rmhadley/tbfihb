@@ -110,6 +110,11 @@ def generate_dungeon(
         if not any(new_room.intersects(other_room) for other_room in rooms):
             room_not_valid = False
 
+    npc_x = random.randint(new_room.x1 + 1, new_room.x2 - 1)
+    npc_y = random.randint(new_room.y1 + 1, new_room.y2 - 1)
+    # crafter
+    entity_factories.crafter.spawn(dungeon, npc_x, npc_y, "")
+
     dungeon.tiles[new_room.full] = tile_types.wall
     dungeon.tiles[new_room.inner] = tile_types.city_floor
     for door in range(random.randint(1, 4)):

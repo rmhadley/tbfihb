@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from components.base_component import BaseComponent
 from equipment_types import EquipmentType
-from enchant_types import EnchantType
-
-if TYPE_CHECKING:
-    from entity import Actor, Item
+from entity import Actor, Item
 
 class Equipment(BaseComponent):
     parent: Actor
@@ -19,15 +16,6 @@ class Equipment(BaseComponent):
         self.pants = pants
         self.shoes = shoes
         self.head = head
-
-    @property
-    def enchants(self) -> List:
-        my_enchants = []
-        for item in self.equipped_items:
-            for enchant in item.equippable.enchants:
-                my_enchants.append(enchant)
-
-        return my_enchants
 
     @property
     def equipped_items(self) -> List:
@@ -50,18 +38,12 @@ class Equipment(BaseComponent):
     @property
     def min_damage(self) -> int:
         adjusted_damage = 0
-        for enchant in self.enchants:
-            if enchant.enchant_type == EnchantType.DAMAGE:
-                adjusted_damage += int(enchant.bonus)
         if self.weapon:
             return self.weapon.equippable.min_dmg + adjusted_damage
 
     @property
     def max_damage(self) -> int:
         adjusted_damage = 0
-        for enchant in self.enchants:
-            if enchant.enchant_type == EnchantType.DAMAGE:
-                adjusted_damage += int(enchant.bonus)
         if self.weapon:
             return self.weapon.equippable.max_dmg + adjusted_damage
 
@@ -133,41 +115,3 @@ class Equipment(BaseComponent):
             self.unequip_from_slot(slot, add_message)
         else:
             self.equip_to_slot(slot, equippable_item, add_message)
-
-    def sort_abilities(self, ability: Enchant) -> str:
-        sort_by = ability.name
-        return sort_by
-
-    @property
-    def abilities(self) -> List:
-        abilities = []
-
-        for item in self.equipped_items:
-            for enchant in item.equippable.enchants:
-                if enchant.enchant_type == EnchantType.ABILITY:
-                    abilities.append(enchant)
-
-        abilities.sort(key=self.sort_abilities)
-
-        my_abilities = []
-        previous_ability = None
-        level = 0
-
-        for ability in abilities:
-            if level == 0:
-                if previous_ability is None:
-                    previous_ability = ability
-
-            if previous_ability.name != ability.name:
-                previous_ability.level = level
-                level = 1
-                my_abilities.append(previous_ability)
-                previous_ability = ability
-            else:
-                level += 1
-
-        if level > 0:
-            previous_ability.level = level
-            my_abilities.append(previous_ability)
-
-        return my_abilities

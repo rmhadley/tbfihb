@@ -130,6 +130,14 @@ class Fisherman(NPC):
         self.gamemap.engine.npc = self
         return None
 
+class Crafter(NPC):
+    HELLO = "Let's craft some gear."
+    quests = []
+
+    def interact(self) -> None:
+        self.gamemap.engine.npc = self
+        return None
+
 class Actor(Entity):
     def __init__(
         self,

@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
 
 import color
-import enchant_types
 from components.base_component import BaseComponent
 from render_order import RenderOrder
-
-if TYPE_CHECKING:
-    from entity import Actor
+from entity import Actor
 
 class Fighter(BaseComponent):
     parent: Actor
@@ -38,54 +34,36 @@ class Fighter(BaseComponent):
     @property
     def strength(self) -> int:
         adjusted_strength = self._strength
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.STR:
-                adjusted_strength += int(enchant.bonus)
                     
         return adjusted_strength
 
     @property
     def intelligence(self) -> int:
         adjusted_intelligence = self._intelligence
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.INT:
-                adjusted_intelligence += int(enchant.bonus)
                     
         return adjusted_intelligence
 
     @property
     def dexterity(self) -> int:
         adjusted_dexterity = self._dexterity
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.DEX:
-                adjusted_dexterity += int(enchant.bonus)
                     
         return adjusted_dexterity
 
     @property
     def constitution(self) -> int:
         adjusted_constitution = self._constitution
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.CON:
-                adjusted_constitution += int(enchant.bonus)
                     
         return adjusted_constitution
 
     @property
     def max_hp(self) -> int:
         adjusted_hp = self._max_hp + self.constitution
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.HP:
-                adjusted_hp += int(enchant.bonus)
                     
         return adjusted_hp
 
     @property
     def max_mp(self) -> int:
         adjusted_mp = self._max_mp + self.intelligence
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.MP:
-                adjusted_mp += int(enchant.bonus)
                     
         return adjusted_mp
 
@@ -122,10 +100,6 @@ class Fighter(BaseComponent):
             defense += self.parent.equipment.pants.equippable.equipped_defense
         if self.parent.equipment.shoes:
             defense += self.parent.equipment.shoes.equippable.equipped_defense
-
-        for enchant in self.parent.equipment.enchants:
-            if enchant.enchant_type == enchant_types.EnchantType.DEFENSE:
-                defense += int(enchant.bonus)
 
         return defense
 
