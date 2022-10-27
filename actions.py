@@ -7,7 +7,6 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import color
 import exceptions
 from render_functions import get_names_at_location
-from entity import NPC
 
 class Action:
     def __init__(self, entity: Actor) -> None:
@@ -187,7 +186,7 @@ class MovementAction(ActionWithDirection):
 
         entity = self.engine.game_map.get_blocking_entity_at_location(dest_x, dest_y)
         if entity:
-            if isinstance(entity, NPC) and entity.is_alive:
+            if entity.is_npc:
                 return entity.interact()
             else:
                 # Destination is blocked by an entity.

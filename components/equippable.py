@@ -12,15 +12,6 @@ class Equippable(BaseComponent):
     ):
         self.equipment_type = equipment_type
 
-    def is_equipped(self, equipment: Equipment, slot: str) -> bool:
-        equipped_slot = getattr(equipment, slot)
-
-        if equipped_slot:
-            if equipped_slot.equippable == self:
-                return True
-
-        return False
-
-class Dagger(Equippable):
+class BasicRod(Equippable):
     def __init__(self) -> None:
-        super().__init__(equipment_type=EquipmentType.WEAPON)
+        super().__init__(equipment_type=EquipmentType.ROD)

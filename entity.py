@@ -6,6 +6,7 @@ import random
 from typing import Optional, Tuple, Type, TypeVar, TYPE_CHECKING, Union
     
 import components.quests
+import components.menus
 from render_order import RenderOrder
 
 
@@ -15,6 +16,7 @@ class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
+    is_npc = False
 
     parent: Union[GameMap, Inventory]
 
@@ -77,6 +79,8 @@ class Entity:
         self.y += dy
 
 class NPC(Entity):
+    is_npc = True
+
     def __init__(
         self,
         *,
@@ -120,6 +124,7 @@ class NPC(Entity):
 class Fisherman(NPC):
     HELLO = "Sup? I got a job for you."
     quests = []
+    menu = None
 
     def interact(self) -> None:
         self.quests = []
@@ -133,6 +138,35 @@ class Fisherman(NPC):
 class Crafter(NPC):
     HELLO = "Let's craft some gear."
     quests = []
+    menu = None
+
+    def interact(self) -> None:
+        self.gamemap.engine.npc = self
+        return None
+
+class Stash(NPC):
+    HELLO = "Your Stash"
+    quests = []
+
+    def __init__(
+        self,
+        *,
+        x: int = 0,
+        y: int = 0,
+        char: str = "?",
+        color: Tuple[int, int, int] = (255, 255, 255),
+        name: str = "<Unnamed>",
+        ai_cls: Type[BaseAI],
+    ):
+        super().__init__(
+            x=x,
+            y=y,
+            char=char,
+            color=color,
+            name=name,
+            ai_cls=ai_cls,
+        )
+        self.menu = components.menus.StashMenu()
 
     def interact(self) -> None:
         self.gamemap.engine.npc = self

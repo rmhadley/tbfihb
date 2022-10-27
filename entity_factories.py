@@ -5,7 +5,7 @@ from components.skills import Skills
 from components.fighter import Fighter
 from components.inventory import Inventory, Parts
 from components.level import Level
-from entity import Actor, Item, Fisherman, Crafter
+from entity import Actor, Item, Fisherman, Crafter, Stash
 
 player = Actor(
     char="@",
@@ -20,16 +20,23 @@ player = Actor(
 )
 
 fisherman = Fisherman(
-    char="@",
+    char="t",
     color=(97, 237, 111),
     name="Fisherman",
     ai_cls=NPCAI,
 )
 
 crafter = Crafter(
-    char="@",
+    char="t",
     color=(97, 237, 111),
     name="Crafter",
+    ai_cls=NPCAI,
+)
+
+stash = Stash(
+    char="~",
+    color=(179, 91, 11),
+    name="Stash",
     ai_cls=NPCAI,
 )
 

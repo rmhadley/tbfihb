@@ -12,7 +12,6 @@ from typing import Optional
 import tcod
 
 import color
-from rarity_levels import RarityLevel
 from engine import Engine
 import entity_factories
 from game_map import GameWorld

@@ -962,6 +962,14 @@ class NPCEventHandler(AskUserEventHandler):
                 fg_color = color.white
 
                 console.print(x + 1, y + i + 3, quest_string, fg=fg_color)
+        elif self.npc.menu != None:
+            for i, option in enumerate(self.npc.menu.options):
+                option_key = chr(ord("a") + i)
+
+                option_string = f"({option_key}) {option.text}"
+                fg_color = color.white
+
+                console.print(x + 1, y + i + 3, option_string, fg=fg_color)
 
         quest_key = chr(ord("a") + i + 1)
         console.print(x + 1, y + i + 4, f"({quest_key}) No thanks")
@@ -973,16 +981,26 @@ class NPCEventHandler(AskUserEventHandler):
         index = key - tcod.event.K_a
 
         if 0 <= index <= 26:
-            try:
-                self.engine.quest = self.npc.quests[index]
-                self.engine.message_log.add_message("Quest accepted.")
-                return super().ev_keydown(event)
-            except IndexError:
-                if index == len(self.npc.quests):
+            if len(self.npc.quests) > 0:
+                try:
+                    self.engine.quest = self.npc.quests[index]
+                    self.engine.message_log.add_message("Quest accepted.")
                     return super().ev_keydown(event)
-                else:
-                    self.engine.message_log.add_message("Invalid entry.", color.invalid)
-                    return None
+                except IndexError:
+                    if index == len(self.npc.quests):
+                        return super().ev_keydown(event)
+                    else:
+                        self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                        return None
+            elif self.npc.menu != None:
+                try:
+                    return self.npc.menu.options[index].action(self.engine)
+                except IndexError:
+                    if index == len(self.npc.menu.options):
+                        return super().ev_keydown(event)
+                    else:
+                        self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                        return None
 
 class QuestScreenEventHandler(AskUserEventHandler):
     TITLE = "Quest"

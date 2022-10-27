@@ -9,7 +9,6 @@ import numpy as np
 import entity_factories
 from entity import Item
 from game_map import GameMap
-from rarity_levels import RarityLevel
 import tile_types
 
 class RectangularRoom:
@@ -180,6 +179,9 @@ def generate_dungeon(
 
     # fisherman
     entity_factories.fisherman.spawn(dungeon, dock_x, shore_height - 1, "")
+
+    # stash
+    entity_factories.stash.spawn(dungeon, dock_x - 1, shore_height, "")
 
     bottom = 0
     dungeon.player_start = [random.randint(dock_x, dock_x + dock_width - 1), dock_y]
