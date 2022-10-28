@@ -1,6 +1,4 @@
 from components.base_component import BaseComponent
-from components.equipment import Equipment
-from equipment_types import EquipmentType
 from entity import Item
 
 class Equippable(BaseComponent):
@@ -8,10 +6,16 @@ class Equippable(BaseComponent):
 
     def __init__(
         self,
-        equipment_type: EquipmentType,
+        name: str,
+        slot: str,
     ):
-        self.equipment_type = equipment_type
+        self.name = name
+        self.slot = slot
 
 class BasicRod(Equippable):
     def __init__(self) -> None:
-        super().__init__(equipment_type=EquipmentType.ROD)
+        super().__init__(name="Basic Fishing Rod", slot="Rod")
+
+class GoldRod(Equippable):
+    def __init__(self) -> None:
+        super().__init__(name="Gold Rod", slot="Rod")

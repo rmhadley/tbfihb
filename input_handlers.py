@@ -1216,3 +1216,191 @@ class PartsEventHandler(AskUserEventHandler):
         else:
             self.engine.message_log.add_message("Invalid entry.", color.invalid)
             return None
+
+class MyEquipmentEventHandler(AskUserEventHandler):
+    TITLE = "My Equipment"
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        equipment = self.engine.player.equipment
+        number_slots = len(equipment.slots)
+        height = number_slots + 2
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = 40
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        for i, slot in enumerate(equipment.slots):
+            item = getattr(equipment, slot)
+            if item != None:
+                console.print(x + 1, y + 1 + i, f"{slot}: {item.name}")
+            else:
+                console.print(x + 1, y + 1 + i, f"{slot}: None")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if key == tcod.event.K_ESCAPE:
+            return super().ev_keydown(event)
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None
+
+class ChangeEquipmentEventHandler(AskUserEventHandler):
+    TITLE = "Change Equipment"
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        equipment = self.engine.player.equipment
+
+        number_slots = len(equipment.slots)
+
+        height = number_slots + 3
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = 20
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        for i, slot in enumerate(equipment.slots):
+            key = chr(ord("a") + i)
+            menu_string = f"({key}) {slot}"
+
+            console.print(x + 1, y + i + 1, menu_string, fg=color.white)
+
+        key = chr(ord("a") + i + 1)
+        i += 1
+        console.print(x + 1, y + i + 1, f"({key}) Exit")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if key == tcod.event.K_ESCAPE:
+            return super().ev_keydown(event)
+
+        equipment = self.engine.player.equipment
+        if 0 <= index <= 26:
+            try:
+                return EquipSlotEventHandler(self.engine, equipment.slots[index])
+            except IndexError:
+                if index == len(equipment.slots):
+                    return super().ev_keydown(event)
+                else:
+                    self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                    return None
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None
+
+class EquipSlotEventHandler(AskUserEventHandler):
+    def __init__(self, engine: Engine, slot: str):
+        super().__init__(engine)
+        self.slot = slot
+        self.TITLE = f"Equip {slot}"
+        self.items = []
+        for item in self.engine.stash:
+            if item.slot == self.slot:
+                self.items.append(item)
+        self.number_items = len(self.items)
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        height = self.number_items + 3
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = 40
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        equipped_item = getattr(self.engine.player.equipment, self.slot)
+
+        if self.number_items > 0:
+            for i, item in enumerate(self.items):
+                key = chr(ord("a") + i)
+                menu_string = f"({key}) {item.name}"
+
+                fg_color = color.white
+
+                if type(equipped_item) == type(item):
+                    menu_string += " (E)"
+                    fg_color = (255, 0, 0)
+
+                console.print(x + 1, y + i + 1, menu_string, fg=fg_color)
+
+            key = chr(ord("a") + i + 1)
+            i += 1
+            console.print(x + 1, y + i + 1, f"({key}) Exit")
+        else:
+            console.print(x + 1, y + 1, f"(a) Exit")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if key == tcod.event.K_ESCAPE:
+            return super().ev_keydown(event)
+
+        if 0 <= index <= 26:
+            try:
+                self.engine.player.equipment.equip(self.slot, self.items[index])
+                return None
+            except IndexError:
+                if index == self.number_items:
+                    return super().ev_keydown(event)
+                else:
+                    self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                    return None
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None

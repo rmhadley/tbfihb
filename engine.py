@@ -11,6 +11,7 @@ import color
 import exceptions
 import render_functions
 from message_log import MessageLog
+from components.equippable import GoldRod, BasicRod
 
 if TYPE_CHECKING:
     from entity import Actor
@@ -31,6 +32,7 @@ class Engine:
         self.quest = None
         self.caught = []
         self.parts = []
+        self.stash = [BasicRod()]
 
     def handle_enemy_turns(self) -> None:
         for entity in set(self.game_map.actors) - {self.player}:

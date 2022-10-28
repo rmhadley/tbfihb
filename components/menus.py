@@ -1,5 +1,5 @@
 from components.base_component import BaseComponent
-from input_handlers import ActionOrHandler, PartsEventHandler
+from input_handlers import ActionOrHandler, MyEquipmentEventHandler, ChangeEquipmentEventHandler
 
 class Menu(BaseComponent):
     def __init__(
@@ -24,7 +24,7 @@ class StashMenu(Menu):
         super().__init__(
             name="Stash",
             options=[
-                MenuOption("My Equipment", PartsEventHandler),
-                MenuOption("Change Equipment", PartsEventHandler),
+                MenuOption("My Equipment", MyEquipmentEventHandler),
+                MenuOption("Change Equipment", ChangeEquipmentEventHandler),
             ]
         )
