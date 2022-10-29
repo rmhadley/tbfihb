@@ -1,4 +1,4 @@
-# i-like-loot
+# The Big Fish Is Huge Baby
 
 ![Main Menu](images/screenshots/main_menu.png?raw=true "Main Menu")
 
