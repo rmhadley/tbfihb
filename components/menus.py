@@ -1,5 +1,5 @@
 from components.base_component import BaseComponent
-from input_handlers import ActionOrHandler, MyEquipmentEventHandler, ChangeEquipmentEventHandler
+from input_handlers import ActionOrHandler, MyEquipmentEventHandler, ChangeEquipmentEventHandler, CraftRodsEventHandler, CraftHatsEventHandler, CraftVestsEventHandler, CraftPantsEventHandler, CraftBootsEventHandler, CraftGlovesEventHandler
 
 class Menu(BaseComponent):
     def __init__(
@@ -26,5 +26,19 @@ class StashMenu(Menu):
             options=[
                 MenuOption("My Equipment", MyEquipmentEventHandler),
                 MenuOption("Change Equipment", ChangeEquipmentEventHandler),
+            ]
+        )
+
+class CraftMenu(Menu):
+    def __init__(self) -> None:
+        super().__init__(
+            name="Craft Equipment",
+            options=[
+                MenuOption("Rods", CraftRodsEventHandler),
+                MenuOption("Hats", CraftHatsEventHandler),
+                MenuOption("Vest", CraftVestsEventHandler),
+                MenuOption("Pants", CraftPantsEventHandler),
+                MenuOption("Boots", CraftBootsEventHandler),
+                MenuOption("Gloves", CraftGlovesEventHandler),
             ]
         )

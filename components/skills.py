@@ -40,12 +40,25 @@ class Skill(BaseComponent):
     parent: Actor
 
     def __init__(self, name: str) -> None:
-        self.level = 40
+        self.skill_level = 1
         self.name = name
 
     def get_action(self, user: Actor) -> Optional[ActionOrHandler]:
         """Try to return the action for this ability."""
         return actions.AbilityAction(user, self)
+
+    @property
+    def level(self) -> int:
+        adjusted_level = self.skill_level
+        for item in self.engine.player.equipment.slots:
+            equipped_item = getattr(self.engine.player.equipment, item)
+            if equipped_item != None:
+                try:
+                    adjusted_level += equipped_item.skills[self.name.replace(" ", "")]
+                except KeyError:
+                    pass
+
+        return adjusted_level
 
 class Reel(Skill):
     def __init__(self) -> None:

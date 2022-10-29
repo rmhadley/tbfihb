@@ -140,6 +140,26 @@ class Crafter(NPC):
     quests = []
     menu = None
 
+    def __init__(
+        self,
+        *,
+        x: int = 0,
+        y: int = 0,
+        char: str = "?",
+        color: Tuple[int, int, int] = (255, 255, 255),
+        name: str = "<Unnamed>",
+        ai_cls: Type[BaseAI],
+    ):
+        super().__init__(
+            x=x,
+            y=y,
+            char=char,
+            color=color,
+            name=name,
+            ai_cls=ai_cls,
+        )
+        self.menu = components.menus.CraftMenu()
+
     def interact(self) -> None:
         self.gamemap.engine.npc = self
         return None

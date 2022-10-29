@@ -7,9 +7,7 @@ import tcod
 import numpy as np
 
 import entity_factories
-from entity import Item
 from game_map import GameMap
-from rarity_levels import RarityLevel
 import tile_types
 
 class RectangularRoom:

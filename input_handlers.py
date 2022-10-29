@@ -5,6 +5,7 @@ import os
 import color
 import render_functions
 from typing import Callable, Optional, Tuple, TYPE_CHECKING, Union
+from components.crafting import CraftingTrees
 
 import tcod.event
 import numpy as np  # type: ignore
@@ -415,7 +416,7 @@ class SkillEventHandler(AskUserEventHandler):
             for i, skill in enumerate(self.engine.player.skills.known):
                 skill_key = chr(ord("a") + i)
 
-                skill_string = f"({skill_key}) {skill.name}"
+                skill_string = f"({skill_key}) {skill.name} - {skill.level}"
                 fg_color = color.white
 
                 console.print(x + 1, y + i + 1, skill_string, fg=fg_color)
@@ -448,166 +449,6 @@ class SkillActivateHandler(SkillEventHandler):
     def on_ability_selected(self, ability: Enchant) -> Optional[ActionOrHandler]:
         """Return the action for the selected ability."""
         return ability.get_action(self.engine.player)
-
-class InventoryEventHandler(AskUserEventHandler):
-    """This handler lets the user select an item.
-
-    What happens then depends on the subclass.
-    """
-
-    TITLE = "<missing title>"
-
-    def on_render(self, console: tcod.Console) -> None:
-        """Render an inventory menu, which displays the items in the inventory, and the letter to select them.
-        Will move to a different position based on where the player is located, so the player can always see where
-        they are.
-        """
-        super().on_render(console)
-        number_of_items_in_inventory = len(self.engine.player.inventory.sorted_stacked_items)
-
-        height = number_of_items_in_inventory + 2
-
-        if height <= 3:
-            height = 3
-
-        if self.engine.player.x <= 30:
-            x = 40
-        else:
-            x = 0
-
-        y = 0
-
-        width = len(self.TITLE) + 10
-
-        console.draw_frame(
-            x=x,
-            y=y,
-            width=width,
-            height=height,
-            title=self.TITLE,
-            clear=True,
-            fg=(255, 255, 255),
-            bg=(0, 0, 0),
-        )
-
-        if number_of_items_in_inventory > 0:
-            for i, item in enumerate(self.engine.player.inventory.sorted_stacked_items):
-                item_key = chr(ord("a") + i)
-                is_equipped = self.engine.player.equipment.item_is_equipped(item)
-
-                item_string = f"({item_key}) {item.name}"
-
-                if is_equipped:
-                    item_string = f"{item_string} (E)"
-
-                if item.equippable:
-                    fg_color = item.equippable.get_color()
-                else:
-                    fg_color = color.white
-
-                if item.stackable:
-                    if item.count > 1:
-                        item_string = f"{item_string} ({item.count})"
-
-                console.print(x + 1, y + i + 1, item_string, fg=fg_color)
-        else:
-            console.print(x + 1, y + 1, "(Empty)")
-
-    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
-        player = self.engine.player
-        key = event.sym
-        index = key - tcod.event.K_a
-
-        if 0 <= index <= 26:
-            try:
-                selected_item = player.inventory.sorted_stacked_items[index]
-            except IndexError:
-                self.engine.message_log.add_message("Invalid entry.", color.invalid)
-                return None
-            return self.on_item_selected(selected_item)
-        return super().ev_keydown(event)
-
-    def on_item_selected(self, item: Item) -> Optional[ActionOrHandler]:
-        """Called when the user selects a valid item."""
-        raise NotImplementedError()
-
-class InventoryActivateHandler(InventoryEventHandler):
-    """Handle using an inventory item."""
-
-    TITLE = "Select an item to use"
-
-    def on_item_selected(self, item: Item) -> Optional[ActionOrHandler]:
-        """Return the action for the selected item."""
-        if item.consumable:
-            # Return the action for the selected item.
-            return item.consumable.get_action(self.engine.player)
-        elif item.equippable:
-            return actions.EquipAction(self.engine.player, item)
-        else:
-            return None
-
-class InventoryInfoHandler(InventoryEventHandler):
-    """Handle using an inventory item."""
-
-    TITLE = "          Inventory          "
-
-    def on_item_selected(self, item: Item) -> Optional[ActionOrHandler]:
-        """Return the action for the selected item."""
-        return(InventoryDetailsHandler(self, item))
-
-class InventoryDetailsHandler(AskUserEventHandler):
-    def __init__(self, parent_handler: BaseEventHandler, item: Item):
-        self.parent = parent_handler
-        self.item = item
-        self.engine = parent_handler.engine
-
-    def on_render(self, console: tcod.Console) -> None:
-        self.parent.on_render(console)
-
-        height = 20
-        x = 20
-        y = 10
-        width = 40
-        title = "Item Details"
-
-        console.draw_frame(
-            x=x,
-            y=y,
-            width=width,
-            height=height,
-            title=title,
-            clear=True,
-            fg=(255, 255, 255),
-            bg=(0, 0, 0),
-        )
-
-        console.print(x + 1, y + 1, self.item.description)
-        use_text = self.item.get_use_text(self.engine.player)
-        console.print(x + 1, y + 19, f"{use_text} - (D)rop")
-
-    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
-        player = self.engine.player
-        key = event.sym
-        mod = event.mod
-
-        if (key == tcod.event.K_e) or (key == tcod.event.K_r) or (key == tcod.event.K_u) or (key == tcod.event.K_q):
-            if self.item.consumable:
-                return self.item.consumable.get_action(player)
-            elif self.item.equippable:
-                return actions.EquipAction(player, self.item)
-        elif key == tcod.event.K_d:
-            return actions.DropItem(player, self.item)
-
-        return self.parent
-
-class InventoryDropHandler(InventoryEventHandler):
-    """Handle dropping an inventory item."""
-
-    TITLE = "Select an item to drop"
-
-    def on_item_selected(self, item: Item) -> Optional[ActionOrHandler]:
-        """Drop this item."""
-        return actions.DropItem(self.engine.player, item)
 
 class SelectIndexHandler(AskUserEventHandler):
     """Handles asking the user for an index on the map."""
@@ -942,7 +783,7 @@ class NPCEventHandler(AskUserEventHandler):
             x=x,
             y=y,
             width=width,
-            height=10,
+            height=12,
             title=self.TITLE,
             clear=True,
             fg=(255, 255, 255),
@@ -1404,3 +1245,222 @@ class EquipSlotEventHandler(AskUserEventHandler):
         else:
             self.engine.message_log.add_message("Invalid entry.", color.invalid)
             return None
+
+class CraftEquipmentEventHandler(AskUserEventHandler):
+    def __init__(self, engine: Engine, slot: str):
+        super().__init__(engine)
+        self.slot = slot
+        self.TITLE = f"{slot} Trees"
+        self.number_options = len(CraftingTrees)
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        height = self.number_options + 3
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = 40
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        for i, tree in enumerate(CraftingTrees):
+            if tree.visible:
+                key = chr(ord("a") + i)
+                menu_string = f"({key}) {tree.name}"
+
+                fg_color = color.white
+
+                console.print(x + 1, y + i + 1, menu_string, fg=fg_color)
+
+        key = chr(ord("a") + i + 1)
+        i += 1
+        console.print(x + 1, y + i + 1, f"({key}) Exit")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if key == tcod.event.K_ESCAPE:
+            return super().ev_keydown(event)
+
+        if 0 <= index <= 26:
+            try:
+                return CraftTreeEventHandler(self.engine, self.slot, CraftingTrees[index])
+            except IndexError:
+                if index == self.number_options:
+                    return super().ev_keydown(event)
+                else:
+                    self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                    return None
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None
+
+class CraftRodsEventHandler(CraftEquipmentEventHandler):
+    def __init__(self, engine: Engine):
+        super().__init__(engine, slot="Rod")
+
+class CraftHatsEventHandler(CraftEquipmentEventHandler):
+    def __init__(self, engine: Engine):
+        super().__init__(engine, slot="Hat")
+
+class CraftVestsEventHandler(CraftEquipmentEventHandler):
+    def __init__(self, engine: Engine):
+        super().__init__(engine, slot="Vest")
+
+class CraftPantsEventHandler(CraftEquipmentEventHandler):
+    def __init__(self, engine: Engine):
+        super().__init__(engine, slot="Pants")
+
+class CraftBootsEventHandler(CraftEquipmentEventHandler):
+    def __init__(self, engine: Engine):
+        super().__init__(engine, slot="Boots")
+
+class CraftGlovesEventHandler(CraftEquipmentEventHandler):
+    def __init__(self, engine: Engine):
+        super().__init__(engine, slot="Gloves")
+
+class CraftTreeEventHandler(AskUserEventHandler):
+    def __init__(self, engine: Engine, slot: str, tree: str):
+        super().__init__(engine)
+        self.slot = slot
+        self.tree = tree
+        self.TITLE = f"{tree.name} {slot} Tree"
+
+        self.options = getattr(self.tree, self.slot)
+        self.number_options = len(self.options)
+
+        self.parts = {}
+        unique_parts = []
+        for part in self.engine.parts:
+            if part not in unique_parts:
+                unique_parts.append(part)
+        unique_parts.sort()
+
+        if len(unique_parts) > 0:
+            for i, part in enumerate(unique_parts):
+                count = self.engine.parts.count(part)
+                self.parts[part] = count
+
+    def on_render(self, console: tcod.Console) -> None:
+        super().on_render(console)
+
+        height = self.number_options + 3
+
+        if self.engine.player.x <= 30:
+            x = 40
+        else:
+            x = 0
+
+        y = 0
+
+        width = 40
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=self.TITLE,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        for i, item in self.options.items():
+            key = chr(ord("a") + i)
+            menu_string = f"({key}) {item.name}"
+
+            fg_color = (66, 66, 66)
+            if item.can_craft(self.parts):
+                fg_color = color.white
+
+            console.print(x + 1, y + i + 1, menu_string, fg=fg_color)
+
+        key = chr(ord("a") + i + 1)
+        i += 1
+        console.print(x + 1, y + i + 1, f"({key}) Exit")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        key = event.sym
+        index = key - tcod.event.K_a
+
+        if key == tcod.event.K_ESCAPE:
+            return super().ev_keydown(event)
+
+        if 0 <= index <= 26:
+            try:
+                return CraftDetailsEventHandler(self, self.options[index], self.parts)
+            except KeyError:
+                if index == self.number_options:
+                    return super().ev_keydown(event)
+                else:
+                    self.engine.message_log.add_message("Invalid entry.", color.invalid)
+                    return None
+        else:
+            self.engine.message_log.add_message("Invalid entry.", color.invalid)
+            return None
+
+class CraftDetailsEventHandler(AskUserEventHandler):
+    def __init__(self, parent_handler: BaseEventHandler, item: Equippable, parts: {}):
+        self.engine = parent_handler.engine
+        self.parent = parent_handler
+        self.item = item
+        self.parts = parts
+
+    def on_render(self, console: tcod.Console) -> None:
+        self.parent.on_render(console)
+
+        height = 20
+        x = 20
+        y = 10
+        width = 40
+        title = f"Craft {self.item.name}"
+
+        console.draw_frame(
+            x=x,
+            y=y,
+            width=width,
+            height=height,
+            title=title,
+            clear=True,
+            fg=(255, 255, 255),
+            bg=(0, 0, 0),
+        )
+
+        console.print(x + 1, y + 1, self.item.crafting_description(self.parts))
+
+        option_text = ""
+        if self.item.can_craft(self.parts):
+            option_text = "(C)raft - "
+
+        console.print(x + 1, y + 19, f"{option_text}(B)ack")
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        player = self.engine.player
+        key = event.sym
+        mod = event.mod
+
+        if key == tcod.event.K_b:
+            return self.parent
+        elif key == tcod.event.K_c and self.item.can_craft(self.parts):
+            self.item.craft(self.engine.parts, self.engine.stash)
+            return super().ev_keydown(event)
+
+        self.engine.message_log.add_message("Invalid entry.", color.invalid)
+        return None
