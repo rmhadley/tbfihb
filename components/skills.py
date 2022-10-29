@@ -18,6 +18,7 @@ class Skills(BaseComponent):
         self.learn(self.known_normal, CastLine())
         self.learn(self.known_hooked, Reel())
         self.learn(self.known_hooked, Unhook())
+        self.learn(self.known_hooked, Exhaust())
         self.hooked = None
 
     def learn(self, known: [], skill: Skill) -> None:
@@ -107,6 +108,34 @@ class Reel(Skill):
             self.engine.message_log.add_message(
                 f"It resists."
             )
+
+class Exhaust(Skill):
+    def __init__(self) -> None:
+        super().__init__(
+            name="Exhaust",
+        )
+
+    @property
+    def description(self) -> str:
+        description = f"Attempt to exhaust hooked fish."
+
+        return description
+
+    def activate(self, action: actions.AbilityAction, path: Tuple[int, int]) -> None:
+        self.parent.hooked.fighter.fatigue += random.randint(int(0 + self.level * 0.3),  int(10 + self.level * 1.3))
+        self.engine.message_log.add_message("You tire the fish out some.")
+        chance = random.randint(0, 100)
+        if chance <= 10:
+            self.engine.message_log.add_message("The fish puts up a fight!")
+            self.parent.hooked.fighter.hooked -= random.randint(int(0 + self.parent.hooked.fighter.strength * 0.1), int(10 + self.parent.hooked.fighter.strength * 1.1))
+            if self.parent.hooked.fighter.hooked <= 0:
+                fish = self.parent.hooked
+                fish.fighter.hooked = 0
+                self.parent.unhook()
+                fish.ai = ScaredEnemy(fish, fish.ai)
+        elif chance <= 15:
+            self.engine.message_log.add_message("You expertly improve your hook!")
+            self.parent.hooked.fighter.hooked += random.randint(int(0 + self.level * 0.1), int(10 + self.level * 1.1))
 
 class Unhook(Skill):
     def __init__(self) -> None:
