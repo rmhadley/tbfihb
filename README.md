@@ -18,6 +18,7 @@
 * Look around: /
 * Use skill: a
 * View Quest: q
+* View mats/parts: p
 * View message log: v
 * Save and Quit: S
 
