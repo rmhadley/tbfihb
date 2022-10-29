@@ -63,7 +63,7 @@ class Skill(BaseComponent):
 class Reel(Skill):
     def __init__(self) -> None:
         super().__init__(
-            name="Reel in Line",
+            name="Reel",
         )
 
     @property
